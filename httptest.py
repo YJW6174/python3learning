@@ -5,23 +5,42 @@
 
 __author__ = 'yuanjunwen'
 
+import urllib
 from urllib import request
 import json,time,os,sched,datetime
 from wxpy import *
-cityName = '上海'
-url = 'http://api.map.baidu.com/telematics/v3/weather?location=%E5%8D%97%E4%BA%AC&output=json&ak=EDb6761c5b033eaa0cd169651f54c3d2'
 
+bot = Bot(True)
+
+api = 'http://api.map.baidu.com/telematics/v3/weather?output=json&ak=EDb6761c5b033eaa0cd169651f54c3d2&location='
+data = [{
+	"name": 'Lynn颖儿',
+	"city": '南京',
+	"type": 'friends'
+	},
+	{
+	"name": '袁氏家族',
+	"city": '南通',
+	"type": 'groups'
+	},
+	{
+	"name": 'forever-rejected',
+	"city": '上海',
+	"type": "groups"
+	}]
+for obj in data:
+	obj['url'] = api + urllib.parse.quote(obj['city'])
+	if obj['type'] == 'friends':
+		obj['chatobj'] = bot.friends().search(obj['name'])[0]
+	elif obj['type'] == 'groups':
+		obj['chatobj'] = bot.groups().search(obj['name'])[0]
 #res = request.urlopen('http://api.map.baidu.com/telematics/v3/weather?location=%E5%8D%97%E4%BA%AC&output=json&ak=FK9mkfdQsloEngodbFl4FeY3').read()
 #
-bot = Bot(True)
-my_friend1 = bot.friends().search('潘童怡')[0]
-my_friend2 = bot.friends().search('Lynn颖儿')[0]
-my_friend3 = bot.groups().search('forever-rejected')[0]
-my_friend4 = bot.groups().search('袁氏家族')[0]
+#
+#sendWeather();
 
-def sendWeather(now):
-    with request.urlopen(url) as f:
-    	print (now)
+def sendWeather(obj):
+    with request.urlopen(obj['url']) as f:
     	res = f.read().decode('utf-8')
     	res = json.loads(res)
     	error = res['error']
@@ -37,14 +56,9 @@ def sendWeather(now):
 
     	Today = '今天:' + cold + ',' + todayWeatherTem + ',' + todayWeatherRain + ''
     	tomorrow = '明天:' + tomorrowWeather['temperature'] + ',' + tomorrowWeather['weather'][0]
-    	sendMsg = Today + '\n' + tomorrow + '\n' + 
+    	sendMsg = Today + '\n' + tomorrow + '\n' + '挣扎吧,在血和暗的深渊里'
     	print (sendMsg)
-
-
-    	my_friend1.send(sendMsg)
-    	my_friend2.send(sendMsg)
-    	my_friend3.send(sendMsg)
-    	my_friend4.send(sendMsg)
+    	obj['chatobj'].send(sendMsg)
 
 
 # sendWeather()
@@ -84,11 +98,12 @@ def timerFunc(schedule_Timer):
 		now = datetime.datetime.now()
 		if now == schedule_Timer:
 			print ('=========')
-			sendWeather(now)
+			for obj in data:
+				sendWeather(obj)
 			flag = 1
 		else:
 			if flag == 1:
-				schedule_Timer = schedule_Timer + datetime.timedelta(hours=8)
+				schedule_Timer = schedule_Timer + datetime.timedelta(hours=9)
 				flag = 0
-schedule_Timer = datetime.datetime(2017,3,31,23,30,50);
+schedule_Timer = datetime.datetime(2017,4,1,0,28,0);
 timerFunc(schedule_Timer)
